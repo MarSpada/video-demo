@@ -4,7 +4,7 @@
     "botAvatar": "images/bot-avatar.png",
     "userName": "Ned",
     "userInitial": "N",
-    "studioUrl": "https://qwen-image-editor-production-49d4.up.railway.app/standalone/studio?imageUrl=https%3A%2F%2Fv3b.fal.media%2Ffiles%2Fb%2F0a8b8b09%2FyZtS-RQqgWF7A9YWuYSYb.jpg&user_id=Tectonica",
+    "studioUrl": "https://qwen-image-editor-production-49d4.up.railway.app/standalone/studio?imageUrl=https%3A%2F%2Fv3b.fal.media%2Ffiles%2Fb%2F0a909262%2Fd4fs8mr-xTLiJWXpQPM2Q_d798Yxry.jpg&user_id=Tectonica",
     "autoPlay": true,
     "typeSpeed": 50,
     "startDelay": 3000,
@@ -44,7 +44,7 @@
     {
       "thinkTime": 8,
       "botResponse": "Here's your base design with brand colors and a text-safe zone:",
-      "images": ["images/post-image.png"]
+      "images": ["images/image-original.jpg"]
     },
     {
       "botResponse": "The image is ready for editing! You can now open the **Visual Studio** to:\n\n- Add your **logo**\n- Add the text **\"Join me this Saturday!\"**\n- Add a **QR code** linking to the event details\n- Resize for different formats\n\nType `/` to open the Visual Studio and start editing.",
@@ -55,17 +55,17 @@
       "userMessage": "Done editing! Looks great. Now generate all three format versions for me.",
       "thinkTime": 10,
       "botResponse": "Great work on the edits! Now let me generate all three format versions for you.\n\n**Post Format (1024×1024 square):**",
-      "images": ["images/post-image.png"]
+      "images": ["images/image-result.jpg"]
     },
     {
       "thinkTime": 2,
       "botResponse": "**Story Format (720×1280 vertical):**",
-      "images": ["images/story-image.png"]
+      "images": ["images/image-result.jpg"]
     },
     {
       "thinkTime": 2,
       "botResponse": "**WhatsApp Share (1200×630):**",
-      "images": ["images/whatsapp-image.png"]
+      "images": ["images/image-result.jpg"]
     },
     {
       "botResponse": "All three versions are ready to download and share! Each one is optimized for its platform:\n\n- **Post** — square, perfect for Instagram/Facebook feed\n- **Story** — vertical, ideal for Instagram/Facebook Stories\n- **WhatsApp** — landscape preview, optimized for chat sharing\n\nWould you like me to draft **follow-up messaging** for after the event? I can create thank-you posts or recap graphics.",
