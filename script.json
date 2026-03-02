@@ -3,7 +3,14 @@
     "botName": "Graphic Creation Bot",
     "botAvatar": "images/bot-avatar.png",
     "userName": "Ned",
-    "userInitial": "N"
+    "userInitial": "N",
+    "slashCommands": [
+      {
+        "command": "open_studio_v2",
+        "label": "Open Studio V2",
+        "description": "Open the image editor"
+      }
+    ]
   },
   "conversation": [
     {
@@ -49,6 +56,13 @@
     {
       "botResponse": "Both images feature:\n\n- Climate change imagery (melting ice, extreme weather)\n- Clean text-safe zones where you can add \"Rising Temperatures, Rising Action\"\n- Corporate branding style for professional consistency\n\nYou can add the text using any image editor or the Image Studio tool. The images are optimized for their respective formats and ready for Instagram and Facebook!\n\nWould you like any adjustments to either image?",
       "images": []
+    },
+    {
+      "type": "studio",
+      "thinkTime": 1,
+      "thinkTime2": 1,
+      "studioUrl": "https://qwen-image-editor-production-49d4.up.railway.app/standalone/studio?imageUrl=https%3A%2F%2Fv3b.fal.media%2Ffiles%2Fb%2F0a8b8b09%2FyZtS-RQqgWF7A9YWuYSYb.jpg&user_id=Tectonica",
+      "botResponse": ""
     }
   ]
 }

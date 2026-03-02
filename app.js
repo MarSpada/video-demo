@@ -13,6 +13,7 @@ const sendBtn = document.getElementById('sendBtn');
 const sendIcon = document.getElementById('sendIcon');
 const landing = document.getElementById('landing');
 const sidebar = document.getElementById('sidebar');
+const slashPopup = document.getElementById('slashPopup');
 
 // ── Load script from JSON ──
 async function loadScript() {
@@ -66,6 +67,49 @@ document.getElementById('sidebarToggleBtn').addEventListener('click', () => {
   sidebar.classList.toggle('collapsed');
 });
 
+// ── Slash Command Popup ──
+function showSlashPopup() {
+  const commands = CONFIG.slashCommands || [
+    { command: 'open_studio_v2', label: 'Open Studio V2', description: 'Open the image editor' }
+  ];
+
+  slashPopup.innerHTML = '';
+  commands.forEach(cmd => {
+    const item = document.createElement('div');
+    item.className = 'slash-cmd-item';
+    item.innerHTML = `
+      <div class="slash-cmd-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+      </div>
+      <div class="slash-cmd-info">
+        <span class="slash-cmd-name">/${cmd.command}</span>
+        <span class="slash-cmd-desc">${cmd.description}</span>
+      </div>`;
+    item.addEventListener('click', () => {
+      hideSlashPopup();
+      inputField.value = cmd.command;
+      inputField.dispatchEvent(new Event('input'));
+      sendMessage();
+    });
+    slashPopup.appendChild(item);
+  });
+  slashPopup.classList.add('visible');
+}
+
+function hideSlashPopup() {
+  slashPopup.classList.remove('visible');
+}
+
+// Close popup on click outside or Escape
+document.addEventListener('click', (e) => {
+  if (!slashPopup.contains(e.target) && e.target !== inputField) {
+    hideSlashPopup();
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hideSlashPopup();
+});
+
 // ── Input handling ──
 inputField.addEventListener('input', () => {
   inputField.style.height = 'auto';
@@ -80,6 +124,13 @@ inputField.addEventListener('input', () => {
     sendBtn.classList.remove('visible');
     const callBtn = document.querySelector('.toolbar-btn-call');
     if (callBtn) callBtn.style.display = '';
+  }
+
+  // Slash command detection
+  if (inputField.value === '/') {
+    showSlashPopup();
+  } else {
+    hideSlashPopup();
   }
 });
 
@@ -100,6 +151,8 @@ function sendMessage() {
 
   const userText = inputField.value.trim();
   if (!userText) return;
+
+  hideSlashPopup();
 
   if (landing) landing.style.display = 'none';
   inputField.placeholder = 'Send a Message';
@@ -189,21 +242,22 @@ function streamBotResponse(entry) {
   chatMessages.appendChild(wrapper);
   scrollToBottom();
 
-  // Thinking indicator
+  // Branch: studio-type response
+  if (entry.type === 'studio') {
+    renderStudioResponse(entry, contentOuter);
+    return;
+  }
+
+  // Normal response: thinking indicator
   if (entry.thinkTime) {
-    const thinkingEl = document.createElement('div');
-    thinkingEl.className = 'thinking-indicator';
-    thinkingEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.48-8.48l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83"/></svg> <span>Thinking...</span>`;
+    const thinkingEl = createThinkingEl();
     contentOuter.appendChild(thinkingEl);
     scrollToBottom();
 
     const thinkDuration = Math.min(entry.thinkTime * 200, 3000);
     setTimeout(() => {
       thinkingEl.remove();
-      const thoughtDone = document.createElement('div');
-      thoughtDone.className = 'thinking-done';
-      thoughtDone.innerHTML = `Thought for ${entry.thinkTime} second${entry.thinkTime > 1 ? 's' : ''} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
-      contentOuter.appendChild(thoughtDone);
+      contentOuter.appendChild(createThoughtDoneEl(entry.thinkTime));
       startStreaming(entry, contentOuter);
     }, thinkDuration);
     return;
@@ -211,6 +265,79 @@ function streamBotResponse(entry) {
 
   startStreaming(entry, contentOuter);
 }
+
+// ── Studio response ──
+function renderStudioResponse(entry, contentOuter) {
+  const thinkDuration1 = Math.min((entry.thinkTime || 1) * 200, 3000);
+  const thinkDuration2 = Math.min((entry.thinkTime2 || 1) * 200, 3000);
+
+  // Phase 1: First thinking
+  const thinking1 = createThinkingEl();
+  contentOuter.appendChild(thinking1);
+  scrollToBottom();
+
+  setTimeout(() => {
+    thinking1.remove();
+
+    // "Thought for X seconds"
+    contentOuter.appendChild(createThoughtDoneEl(entry.thinkTime || 1));
+
+    // "View Result from Open Studio V2"
+    const viewResult = document.createElement('div');
+    viewResult.className = 'view-result';
+    viewResult.innerHTML = `View Result from <strong>Open Studio V2</strong> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+    contentOuter.appendChild(viewResult);
+    scrollToBottom();
+
+    // Phase 2: Second thinking
+    const thinking2 = createThinkingEl();
+    contentOuter.appendChild(thinking2);
+    scrollToBottom();
+
+    setTimeout(() => {
+      thinking2.remove();
+
+      // "Thought for X seconds"
+      contentOuter.appendChild(createThoughtDoneEl(entry.thinkTime2 || 1));
+
+      // "Image Studio" button
+      const studioBtn = document.createElement('button');
+      studioBtn.className = 'studio-btn';
+      studioBtn.textContent = 'Image Studio';
+      studioBtn.addEventListener('click', () => {
+        openStudio(entry.studioUrl);
+      });
+      contentOuter.appendChild(studioBtn);
+
+      // Action buttons
+      appendActionButtons(contentOuter);
+
+      isStreaming = false;
+      updateSendButton();
+      scrollToBottom();
+    }, thinkDuration2);
+  }, thinkDuration1);
+}
+
+// ── Studio Lightbox ──
+function openStudio(url) {
+  const lightbox = document.getElementById('studioLightbox');
+  const iframe = document.getElementById('studioIframe');
+  iframe.src = url;
+  lightbox.classList.add('open');
+}
+
+function closeStudio() {
+  const lightbox = document.getElementById('studioLightbox');
+  const iframe = document.getElementById('studioIframe');
+  lightbox.classList.remove('open');
+  iframe.src = '';
+}
+
+document.getElementById('studioCloseBtn').addEventListener('click', closeStudio);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeStudio();
+});
 
 // ── Streaming ──
 function startStreaming(entry, contentOuter) {
@@ -254,18 +381,7 @@ function startStreaming(entry, contentOuter) {
         contentOuter.appendChild(imgContainer);
       }
 
-      const actions = document.createElement('div');
-      actions.className = 'bot-actions visible';
-      actions.innerHTML = `
-        <button title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-        <button title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
-        <button title="Read aloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg></button>
-        <button title="Good response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg></button>
-        <button title="Bad response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15V19a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg></button>
-        <button title="Continue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></button>
-        <button title="Regenerate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button>
-      `;
-      contentOuter.appendChild(actions);
+      appendActionButtons(contentOuter);
 
       isStreaming = false;
       updateSendButton();
@@ -286,7 +402,37 @@ function startStreaming(entry, contentOuter) {
   streamNext();
 }
 
-// ── Helpers ──
+// ── Shared UI helpers ──
+function createThinkingEl() {
+  const el = document.createElement('div');
+  el.className = 'thinking-indicator';
+  el.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.48-8.48l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83"/></svg> <span>Thinking...</span>`;
+  return el;
+}
+
+function createThoughtDoneEl(seconds) {
+  const el = document.createElement('div');
+  el.className = 'thinking-done';
+  el.innerHTML = `Thought for ${seconds} second${seconds > 1 ? 's' : ''} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+  return el;
+}
+
+function appendActionButtons(container) {
+  const actions = document.createElement('div');
+  actions.className = 'bot-actions visible';
+  actions.innerHTML = `
+    <button title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+    <button title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+    <button title="Read aloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg></button>
+    <button title="Good response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg></button>
+    <button title="Bad response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15V19a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg></button>
+    <button title="Continue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></button>
+    <button title="Regenerate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button>
+  `;
+  container.appendChild(actions);
+}
+
+// ── Other helpers ──
 function updateSendButton() {
   if (isStreaming) {
     sendBtn.disabled = false;
