@@ -6,6 +6,7 @@ let SCRIPT = [];
 let CONFIG = {};
 let scriptIndex = 0;
 let isStreaming = false;
+let autoPlayActive = false;
 
 const chatMessages = document.getElementById('chatMessages');
 const inputField = document.getElementById('inputField');
@@ -23,6 +24,7 @@ async function loadScript() {
     CONFIG = data.config;
     SCRIPT = data.conversation;
     applyConfig();
+    startAutoPlay();
   } catch (err) {
     console.error('Failed to load script.json:', err);
   }
@@ -326,6 +328,7 @@ function renderStudioResponse(entry, contentOuter) {
       isStreaming = false;
       updateSendButton();
       scrollToBottom();
+      onStreamingDone(entry);
     }, thinkDuration2);
   }, thinkDuration1);
 }
@@ -345,6 +348,11 @@ function closeStudio() {
   lightbox.classList.remove('open');
   lightbox.style.display = 'none';
   iframe.removeAttribute('src');
+
+  // Resume auto-play after studio closes
+  if (CONFIG.autoPlay && autoPlayActive) {
+    setTimeout(() => advanceAutoPlay(), 1500);
+  }
 }
 
 document.getElementById('studioCloseBtn').addEventListener('click', closeStudio);
@@ -399,6 +407,7 @@ function startStreaming(entry, contentOuter) {
       isStreaming = false;
       updateSendButton();
       scrollToBottom();
+      onStreamingDone(entry);
       return;
     }
 
@@ -479,6 +488,85 @@ function processMarkdown(text) {
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br>')
     .replace(/^- (.+)/gm, '&bull; $1');
+}
+
+// ── Auto-play engine ──
+function startAutoPlay() {
+  if (!CONFIG.autoPlay) return;
+  autoPlayActive = true;
+  const startDelay = CONFIG.startDelay || 3000;
+  setTimeout(() => advanceAutoPlay(), startDelay);
+}
+
+function advanceAutoPlay() {
+  if (!autoPlayActive || scriptIndex >= SCRIPT.length) return;
+
+  const entry = SCRIPT[scriptIndex];
+
+  if ('userMessage' in entry) {
+    if (entry.userMessage === null) {
+      // Wait for manual user input — auto-play resumes via onStreamingDone
+      return;
+    }
+    // Auto-type user message then send
+    const preDelay = entry.preDelay || 1500;
+    setTimeout(() => {
+      autoTypeMessage(entry.userMessage, () => {
+        setTimeout(() => sendMessage(), 600);
+      });
+    }, preDelay);
+  } else {
+    // Continuation — no user message, immediately trigger bot response
+    const currentEntry = entry;
+    scriptIndex++;
+    setTimeout(() => streamBotResponse(currentEntry), 1000);
+  }
+}
+
+function onStreamingDone(entry) {
+  if (!CONFIG.autoPlay || !autoPlayActive) return;
+
+  // After a bot response with openStudio, auto-type "/" and open studio
+  if (entry && entry.openStudio) {
+    setTimeout(() => {
+      inputField.value = '/';
+      inputField.dispatchEvent(new Event('input'));
+      // Popup appears, click it after a beat
+      setTimeout(() => {
+        const item = slashPopup.querySelector('.slash-cmd-item');
+        if (item) item.click();
+      }, 1000);
+    }, 2000);
+    return;
+  }
+
+  // Otherwise advance to next entry
+  advanceAutoPlay();
+}
+
+function autoTypeMessage(text, callback) {
+  const baseSpeed = CONFIG.typeSpeed || 50;
+  let i = 0;
+  inputField.value = '';
+  inputField.dispatchEvent(new Event('input'));
+
+  function typeNext() {
+    if (i >= text.length) {
+      if (callback) callback();
+      return;
+    }
+    inputField.value = text.substring(0, i + 1);
+    inputField.dispatchEvent(new Event('input'));
+    const char = text[i];
+    i++;
+    // Natural typing: slight pause after punctuation and spaces
+    let delay = baseSpeed + Math.floor(Math.random() * 30) - 15;
+    if ('.!?,;:'.includes(char)) delay += 100;
+    if (char === ' ') delay += 20;
+    setTimeout(typeNext, delay);
+  }
+
+  typeNext();
 }
 
 // ── Init ──

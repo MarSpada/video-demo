@@ -5,6 +5,9 @@
     "userName": "Ned",
     "userInitial": "N",
     "studioUrl": "https://qwen-image-editor-production-49d4.up.railway.app/standalone/studio?imageUrl=https%3A%2F%2Fv3b.fal.media%2Ffiles%2Fb%2F0a8b8b09%2FyZtS-RQqgWF7A9YWuYSYb.jpg&user_id=Tectonica",
+    "autoPlay": true,
+    "typeSpeed": 50,
+    "startDelay": 3000,
     "slashCommands": [
       {
         "command": "open_studio_v2",
@@ -15,21 +18,25 @@
   },
   "conversation": [
     {
+      "userMessage": "Create a graphic to invite friends to a poster-making party before the next protest",
       "thinkTime": 3,
       "botResponse": "I'd love to help you create a graphic for your poster-making party! To make sure I get it right, I have a few questions:\n\n1. **What format do you need?** Instagram/Facebook Post (square), Story (vertical), WhatsApp share, or all of the above?\n2. **Who's the audience?** Close friends, community group, public social media followers?\n3. **What's the vibe?** Bold and urgent, fun and inviting, artistic and creative?\n4. **Do you have existing branding** (colors, logo, fonts) you'd like me to use, or should I design from scratch?",
       "images": []
     },
     {
+      "userMessage": "All three formats — Post, Story, and WhatsApp. It's for friends and community. Fun and inviting vibe. Use our brand colors and logo.",
       "thinkTime": 4,
       "botResponse": "Got it — all three formats (Post, Story, and WhatsApp), aimed at friends and community, fun and inviting vibe, and I'll use your brand colors and logo.\n\nDo you have a photo you'd like me to incorporate into the design? A photo from a previous event or gathering would make it more personal and engaging.",
       "images": []
     },
     {
+      "userMessage": null,
       "thinkTime": 5,
       "botResponse": "⚠️ **Important: Consent & Privacy Notice**\n\nI can see this photo contains **identifiable faces**. Before I use it in a public-facing graphic, please confirm:\n\n1. **Do you have consent** from the people in this photo to use their likeness in social media graphics?\n2. Would you like me to **blur or obscure faces** that haven't given consent?\n3. Are you comfortable with this image being shared on **public social media platforms**?\n\nThis is important for privacy compliance and respecting people's right to control their image. Please confirm how you'd like to proceed.",
       "images": []
     },
     {
+      "userMessage": "Yes, I have consent from everyone in the photo. Please use it as is.",
       "thinkTime": 15,
       "botResponse": "Understood — you have consent and want to proceed with the original photo. Let me generate the base image with your brand colors and text-safe zones.\n\nI'm creating a design that:\n- Incorporates your protest photo as the hero image\n- Uses your brand color palette\n- Leaves clean space for text overlay (\"Join me this Saturday!\")\n- Is optimized for all three formats\n\nGenerating now...",
       "images": []
@@ -41,9 +48,11 @@
     },
     {
       "botResponse": "The image is ready for editing! You can now open the **Visual Studio** to:\n\n- Add your **logo**\n- Add the text **\"Join me this Saturday!\"**\n- Add a **QR code** linking to the event details\n- Resize for different formats\n\nType `/` to open the Visual Studio and start editing.",
-      "images": []
+      "images": [],
+      "openStudio": true
     },
     {
+      "userMessage": "Done editing! Looks great. Now generate all three format versions for me.",
       "thinkTime": 10,
       "botResponse": "Great work on the edits! Now let me generate all three format versions for you.\n\n**Post Format (1024×1024 square):**",
       "images": ["images/post-image.png"]
