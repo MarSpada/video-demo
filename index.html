@@ -8,49 +8,35 @@
 </head>
 <body>
 
-<!-- Sidebar -->
+<!-- Sidebar — icon-only strip -->
 <div class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-brand">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M8 12l2 2 4-4"/>
-      </svg>
-      Open WebUI
+  <!-- Bot avatar at top -->
+  <div class="sidebar-top">
+    <div class="sidebar-bot-avatar" id="sidebarBotAvatar"></div>
+  </div>
+
+  <!-- Icon buttons -->
+  <div class="sidebar-icons">
+    <button class="sidebar-icon-btn" title="New Chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </button>
+    <button class="sidebar-icon-btn" title="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+    <button class="sidebar-icon-btn" title="Notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </button>
+    <button class="sidebar-icon-btn" title="Workspace">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><line x1="17.5" y1="14" x2="17.5" y2="21"/><line x1="14" y1="17.5" x2="21" y2="17.5"/></svg>
+    </button>
+  </div>
+
+  <!-- User avatar at bottom -->
+  <div class="sidebar-bottom">
+    <div class="sidebar-user-wrap">
+      <div class="sidebar-user-avatar" id="sidebarUserAvatar">N</div>
+      <div class="sidebar-online-dot"></div>
     </div>
-    <button class="sidebar-toggle" id="sidebarCloseBtn" title="Close sidebar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <line x1="9" y1="3" x2="9" y2="21"/>
-      </svg>
-    </button>
-  </div>
-
-  <div class="sidebar-actions">
-    <button>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-      </svg>
-      New Chat
-    </button>
-  </div>
-
-  <div class="sidebar-section-label">Today</div>
-  <div class="sidebar-chats">
-    <div class="chat-item active" id="currentChat">Social Media Image Creation</div>
-    <div class="chat-item">Logo variations for Q2</div>
-    <div class="chat-item">Social media banner</div>
-  </div>
-
-  <div class="sidebar-section-label">Yesterday</div>
-  <div class="sidebar-chats">
-    <div class="chat-item">Product mockup review</div>
-    <div class="chat-item">Email header design</div>
-  </div>
-
-  <div class="sidebar-footer">
-    <div class="user-avatar">N</div>
-    <div class="user-name">Ned</div>
   </div>
 </div>
 
@@ -59,7 +45,7 @@
   <!-- Navbar -->
   <div class="navbar">
     <div class="navbar-left">
-      <button class="navbar-sidebar-toggle" id="sidebarOpenBtn" title="Open sidebar">
+      <button class="navbar-sidebar-toggle" id="sidebarToggleBtn" title="Toggle sidebar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
           <line x1="9" y1="3" x2="9" y2="21"/>
@@ -67,46 +53,41 @@
       </button>
       <div class="model-selector-wrap">
         <div class="model-selector" id="modelSelector">
-          <div class="model-icon"></div>
-          <span id="modelName">Visual Bot (Qwen)</span>
+          <div class="model-icon" id="navModelIcon"></div>
+          <span id="modelName">Graphic Creation Bot</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
         </div>
         <div class="model-default-text">Set as default</div>
       </div>
-      <!-- Add model button -->
       <button class="navbar-icon-btn" title="Add model">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
     </div>
     <div class="navbar-right">
-      <!-- Timer/focus icon -->
-      <button class="navbar-icon-btn" title="Temporary chat">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <!-- More menu -->
+      <button class="navbar-icon-btn" title="More">
+        <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
       </button>
-      <!-- Collaboration icon -->
-      <button class="navbar-icon-btn" title="Share">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      <!-- Agent/bot icon -->
+      <button class="navbar-icon-btn" title="Agents">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="5"/><path d="M4 16c0-2.5 3.5-4 8-4s8 1.5 8 4"/><line x1="12" y1="3" x2="12" y2="1"/><line x1="7" y1="4" x2="5.5" y2="2.5"/><line x1="17" y1="4" x2="18.5" y2="2.5"/></svg>
       </button>
-      <!-- Controls icon -->
+      <!-- Controls/sliders icon -->
       <button class="navbar-icon-btn" title="Controls">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="6" r="2" fill="currentColor"/><circle cx="16" cy="12" r="2" fill="currentColor"/><circle cx="10" cy="18" r="2" fill="currentColor"/></svg>
       </button>
-      <!-- Chat controls icon -->
-      <button class="navbar-icon-btn" title="Chat controls">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="14" cy="6" r="2" fill="currentColor"/><circle cx="8" cy="12" r="2" fill="currentColor"/><circle cx="16" cy="18" r="2" fill="currentColor"/></svg>
-      </button>
       <!-- User avatar -->
-      <div class="navbar-user-avatar">N</div>
+      <div class="navbar-user-avatar" id="navUserAvatar">N</div>
     </div>
   </div>
 
   <!-- Chat Messages -->
   <div class="chat-messages" id="chatMessages">
     <div class="landing" id="landing">
-      <div class="landing-icon"></div>
-      <div class="landing-model" id="landingModelName">Visual Bot (Qwen)</div>
+      <div class="landing-icon" id="landingIcon"></div>
+      <div class="landing-model" id="landingModelName">Graphic Creation Bot</div>
     </div>
   </div>
 
@@ -121,31 +102,25 @@
       ></textarea>
       <div class="input-toolbar">
         <div class="input-toolbar-left">
-          <!-- Plus/upload button -->
           <button class="toolbar-btn" title="Upload files">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
           <div class="toolbar-divider"></div>
-          <!-- Features/modules button -->
           <button class="toolbar-btn" title="Features">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
           </button>
-          <!-- Tools button with badge -->
           <button class="toolbar-btn" title="Tools">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
             <span class="toolbar-badge">1</span>
           </button>
         </div>
         <div class="input-toolbar-right">
-          <!-- Microphone -->
           <button class="toolbar-btn" title="Voice input">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
           </button>
-          <!-- Call/voice mode button -->
           <button class="toolbar-btn-call" title="Voice mode">
             <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><rect x="4" y="8" width="2" height="8" rx="1"/><rect x="8" y="5" width="2" height="14" rx="1"/><rect x="12" y="3" width="2" height="18" rx="1"/><rect x="16" y="6" width="2" height="12" rx="1"/><rect x="20" y="9" width="2" height="6" rx="1"/></svg>
           </button>
-          <!-- Send button (hidden initially, shown when typing) -->
           <button class="btn-send" id="sendBtn" disabled>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="sendIcon">
               <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>

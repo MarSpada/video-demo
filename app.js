@@ -32,38 +32,39 @@ function applyConfig() {
   const modelName = document.getElementById('modelName');
   if (modelName) modelName.textContent = CONFIG.botName;
 
-  // Bot avatar in model selector
-  const modelIcon = document.querySelector('.model-icon');
-  if (modelIcon && CONFIG.botAvatar) {
-    modelIcon.innerHTML = `<img src="${CONFIG.botAvatar}" alt="${CONFIG.botName}">`;
+  // Bot avatar in navbar model selector
+  const navModelIcon = document.getElementById('navModelIcon');
+  if (navModelIcon && CONFIG.botAvatar) {
+    navModelIcon.innerHTML = `<img src="${CONFIG.botAvatar}" alt="${CONFIG.botName}">`;
+  }
+
+  // Bot avatar in sidebar
+  const sidebarBot = document.getElementById('sidebarBotAvatar');
+  if (sidebarBot && CONFIG.botAvatar) {
+    sidebarBot.innerHTML = `<img src="${CONFIG.botAvatar}" alt="${CONFIG.botName}">`;
   }
 
   // Landing page
-  const landingIcon = document.querySelector('.landing-icon');
+  const landingIcon = document.getElementById('landingIcon');
   if (landingIcon && CONFIG.botAvatar) {
     landingIcon.innerHTML = `<img src="${CONFIG.botAvatar}" alt="${CONFIG.botName}">`;
   }
   const landingModel = document.getElementById('landingModelName');
   if (landingModel) landingModel.textContent = CONFIG.botName;
 
-  // User info
-  const userName = document.querySelector('.user-name');
-  if (userName) userName.textContent = CONFIG.userName;
+  // User info in sidebar
+  const sidebarUser = document.getElementById('sidebarUserAvatar');
+  if (sidebarUser) sidebarUser.textContent = CONFIG.userInitial;
 
-  const userAvatar = document.querySelector('.user-avatar');
-  if (userAvatar) userAvatar.textContent = CONFIG.userInitial;
-
-  const navUserAvatar = document.querySelector('.navbar-user-avatar');
-  if (navUserAvatar) navUserAvatar.textContent = CONFIG.userInitial;
+  // User info in navbar
+  const navUser = document.getElementById('navUserAvatar');
+  if (navUser) navUser.textContent = CONFIG.userInitial;
 }
 
 // ── Sidebar toggle ──
-function toggleSidebar() {
+document.getElementById('sidebarToggleBtn').addEventListener('click', () => {
   sidebar.classList.toggle('collapsed');
-}
-
-document.getElementById('sidebarCloseBtn').addEventListener('click', toggleSidebar);
-document.getElementById('sidebarOpenBtn').addEventListener('click', toggleSidebar);
+});
 
 // ── Input handling ──
 inputField.addEventListener('input', () => {
@@ -71,7 +72,6 @@ inputField.addEventListener('input', () => {
   inputField.style.height = Math.min(inputField.scrollHeight, 200) + 'px';
   const hasText = inputField.value.trim() !== '';
   sendBtn.disabled = !hasText || isStreaming;
-  // Show/hide send button and call button
   if (hasText) {
     sendBtn.classList.add('visible');
     const callBtn = document.querySelector('.toolbar-btn-call');
@@ -102,8 +102,6 @@ function sendMessage() {
   if (!userText) return;
 
   if (landing) landing.style.display = 'none';
-
-  // Change placeholder after first message
   inputField.placeholder = 'Send a Message';
 
   addUserMessage(userText);
@@ -169,11 +167,23 @@ function streamBotResponse(entry) {
   const contentOuter = document.createElement('div');
   contentOuter.style.cssText = 'width:100%;';
 
-  // Bot name label
-  const nameLabel = document.createElement('div');
+  // Bot header with avatar + name
+  const header = document.createElement('div');
+  header.className = 'bot-header';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'bot-avatar';
+  if (CONFIG.botAvatar) {
+    avatar.innerHTML = `<img src="${CONFIG.botAvatar}" alt="${CONFIG.botName}">`;
+  }
+
+  const nameLabel = document.createElement('span');
   nameLabel.className = 'bot-name-label';
-  nameLabel.textContent = CONFIG.botName || 'Visual Bot (Qwen)';
-  contentOuter.appendChild(nameLabel);
+  nameLabel.textContent = CONFIG.botName || 'Graphic Creation Bot';
+
+  header.appendChild(avatar);
+  header.appendChild(nameLabel);
+  contentOuter.appendChild(header);
 
   wrapper.appendChild(contentOuter);
   chatMessages.appendChild(wrapper);
@@ -225,7 +235,6 @@ function startStreaming(entry, contentOuter) {
     if (wordIndex >= words.length) {
       cursor.remove();
 
-      // Images
       if (entry.images && entry.images.length > 0) {
         const imgContainer = document.createElement('div');
         imgContainer.className = 'message-images';
@@ -245,7 +254,6 @@ function startStreaming(entry, contentOuter) {
         contentOuter.appendChild(imgContainer);
       }
 
-      // Action buttons — 7 buttons matching real OpenWebUI
       const actions = document.createElement('div');
       actions.className = 'bot-actions visible';
       actions.innerHTML = `
