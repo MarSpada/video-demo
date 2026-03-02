@@ -15,6 +15,10 @@ const sendIcon = document.getElementById('sendIcon');
 const landing = document.getElementById('landing');
 const sidebar = document.getElementById('sidebar');
 const slashPopup = document.getElementById('slashPopup');
+const uploadBtn = document.getElementById('uploadBtn');
+const fileInput = document.getElementById('fileInput');
+const uploadPreview = document.getElementById('uploadPreview');
+let pendingImageUrl = null;
 
 // ── Load script from JSON ──
 async function loadScript() {
@@ -68,6 +72,55 @@ function applyConfig() {
 document.getElementById('sidebarToggleBtn').addEventListener('click', () => {
   sidebar.classList.toggle('collapsed');
 });
+
+// ── File upload ──
+uploadBtn.addEventListener('click', () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingImageUrl = ev.target.result;
+    showUploadPreview(pendingImageUrl, file.name);
+  };
+  reader.readAsDataURL(file);
+  fileInput.value = '';
+});
+
+function showUploadPreview(src, name) {
+  uploadPreview.innerHTML = `
+    <div class="upload-thumb">
+      <img src="${src}" alt="${name}">
+      <button class="upload-thumb-remove" title="Remove">&times;</button>
+    </div>`;
+  uploadPreview.style.display = 'flex';
+  uploadPreview.querySelector('.upload-thumb-remove').addEventListener('click', () => {
+    clearUploadPreview();
+  });
+  // Enable send button since we have content
+  sendBtn.disabled = false;
+  sendBtn.classList.add('visible');
+  const callBtn = document.querySelector('.toolbar-btn-call');
+  if (callBtn) callBtn.style.display = 'none';
+}
+
+function clearUploadPreview() {
+  pendingImageUrl = null;
+  uploadPreview.innerHTML = '';
+  uploadPreview.style.display = 'none';
+  // Re-check send button state
+  const hasText = inputField.value.trim() !== '';
+  sendBtn.disabled = !hasText || isStreaming;
+  if (!hasText) {
+    sendBtn.classList.remove('visible');
+    const callBtn = document.querySelector('.toolbar-btn-call');
+    if (callBtn) callBtn.style.display = '';
+  }
+}
 
 // ── Slash Command Popup ──
 function showSlashPopup() {
@@ -163,14 +216,15 @@ function sendMessage() {
   if (isStreaming) return;
 
   const userText = inputField.value.trim();
-  if (!userText) return;
+  if (!userText && !pendingImageUrl) return;
 
   hideSlashPopup();
 
   if (landing) landing.style.display = 'none';
   inputField.placeholder = 'Send a Message';
 
-  addUserMessage(userText);
+  addUserMessage(userText, pendingImageUrl);
+  clearUploadPreview();
 
   inputField.value = '';
   inputField.style.height = 'auto';
@@ -195,7 +249,7 @@ function sendMessage() {
 }
 
 // ── User message ──
-function addUserMessage(text) {
+function addUserMessage(text, imageUrl) {
   const wrapper = document.createElement('div');
   wrapper.className = 'message user';
 
@@ -210,12 +264,27 @@ function addUserMessage(text) {
   label.className = 'message-user-label';
   label.textContent = 'You';
 
-  const content = document.createElement('div');
-  content.className = 'message-content';
-  content.textContent = text;
+  // Attached image (shown above text, like real OpenWebUI)
+  if (imageUrl) {
+    const imgWrap = document.createElement('div');
+    imgWrap.className = 'user-message-image';
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = 'Uploaded image';
+    imgWrap.appendChild(img);
+    body.appendChild(label);
+    body.appendChild(imgWrap);
+  } else {
+    body.appendChild(label);
+  }
 
-  body.appendChild(label);
-  body.appendChild(content);
+  if (text) {
+    const content = document.createElement('div');
+    content.className = 'message-content';
+    content.textContent = text;
+    body.appendChild(content);
+  }
+
   wrapper.appendChild(avatar);
   wrapper.appendChild(body);
   chatMessages.appendChild(wrapper);
