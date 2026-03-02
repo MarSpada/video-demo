@@ -87,9 +87,11 @@ function showSlashPopup() {
       </div>`;
     item.addEventListener('click', () => {
       hideSlashPopup();
-      inputField.value = cmd.command;
+      inputField.value = '';
+      inputField.style.height = 'auto';
       inputField.dispatchEvent(new Event('input'));
-      sendMessage();
+      // Open studio directly (Option 1)
+      openStudio(CONFIG.studioUrl);
     });
     slashPopup.appendChild(item);
   });
