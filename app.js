@@ -1,9 +1,6 @@
 // ================================================================
 // OpenWebUI Mock — Chat Engine
 // ================================================================
-// Loads the conversation script from script.json and drives the
-// scripted chat interaction with streaming animation.
-// ================================================================
 
 let SCRIPT = [];
 let CONFIG = {};
@@ -31,38 +28,33 @@ async function loadScript() {
 }
 
 function applyConfig() {
-  // Apply bot name
+  // Bot name in navbar
   const modelName = document.getElementById('modelName');
   if (modelName) modelName.textContent = CONFIG.botName;
 
-  const footerText = document.querySelector('.input-footer');
-  if (footerText) footerText.textContent = `${CONFIG.botName} can make mistakes. Check important info.`;
-
-  // Apply bot avatar to landing page
-  const landingIcon = document.querySelector('.landing-icon');
-  if (landingIcon && CONFIG.botAvatar) {
-    landingIcon.innerHTML = `<img src="${CONFIG.botAvatar}" alt="${CONFIG.botName}">`;
-  }
-
-  // Apply bot avatar to model selector
+  // Bot avatar in model selector
   const modelIcon = document.querySelector('.model-icon');
   if (modelIcon && CONFIG.botAvatar) {
     modelIcon.innerHTML = `<img src="${CONFIG.botAvatar}" alt="${CONFIG.botName}">`;
   }
 
-  // Apply user name
+  // Landing page
+  const landingIcon = document.querySelector('.landing-icon');
+  if (landingIcon && CONFIG.botAvatar) {
+    landingIcon.innerHTML = `<img src="${CONFIG.botAvatar}" alt="${CONFIG.botName}">`;
+  }
+  const landingModel = document.getElementById('landingModelName');
+  if (landingModel) landingModel.textContent = CONFIG.botName;
+
+  // User info
   const userName = document.querySelector('.user-name');
   if (userName) userName.textContent = CONFIG.userName;
 
   const userAvatar = document.querySelector('.user-avatar');
   if (userAvatar) userAvatar.textContent = CONFIG.userInitial;
 
-  // Apply landing greeting
-  const greeting = document.querySelector('.landing-greeting');
-  if (greeting) greeting.textContent = `Hello, ${CONFIG.userName}`;
-
-  const landingModel = document.querySelector('.landing-model');
-  if (landingModel) landingModel.textContent = CONFIG.botName;
+  const navUserAvatar = document.querySelector('.navbar-user-avatar');
+  if (navUserAvatar) navUserAvatar.textContent = CONFIG.userInitial;
 }
 
 // ── Sidebar toggle ──
@@ -70,18 +62,27 @@ function toggleSidebar() {
   sidebar.classList.toggle('collapsed');
 }
 
-// Wire up sidebar toggle buttons
 document.getElementById('sidebarCloseBtn').addEventListener('click', toggleSidebar);
 document.getElementById('sidebarOpenBtn').addEventListener('click', toggleSidebar);
 
-// ── Auto-resize textarea ──
+// ── Input handling ──
 inputField.addEventListener('input', () => {
   inputField.style.height = 'auto';
   inputField.style.height = Math.min(inputField.scrollHeight, 200) + 'px';
-  sendBtn.disabled = inputField.value.trim() === '' || isStreaming;
+  const hasText = inputField.value.trim() !== '';
+  sendBtn.disabled = !hasText || isStreaming;
+  // Show/hide send button and call button
+  if (hasText) {
+    sendBtn.classList.add('visible');
+    const callBtn = document.querySelector('.toolbar-btn-call');
+    if (callBtn) callBtn.style.display = 'none';
+  } else {
+    sendBtn.classList.remove('visible');
+    const callBtn = document.querySelector('.toolbar-btn-call');
+    if (callBtn) callBtn.style.display = '';
+  }
 });
 
-// ── Send on Enter (Shift+Enter for newline) ──
 inputField.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -100,18 +101,20 @@ function sendMessage() {
   const userText = inputField.value.trim();
   if (!userText) return;
 
-  // Hide landing page
   if (landing) landing.style.display = 'none';
 
-  // Add user message
+  // Change placeholder after first message
+  inputField.placeholder = 'Send a Message';
+
   addUserMessage(userText);
 
-  // Clear input
   inputField.value = '';
   inputField.style.height = 'auto';
   sendBtn.disabled = true;
+  sendBtn.classList.remove('visible');
+  const callBtn = document.querySelector('.toolbar-btn-call');
+  if (callBtn) callBtn.style.display = '';
 
-  // Get next scripted response
   if (scriptIndex < SCRIPT.length) {
     const entry = SCRIPT[scriptIndex];
     scriptIndex++;
@@ -127,16 +130,35 @@ function sendMessage() {
   }
 }
 
-// ── Add user message bubble ──
+// ── User message ──
 function addUserMessage(text) {
   const wrapper = document.createElement('div');
   wrapper.className = 'message user';
-  wrapper.innerHTML = `<div class="message-content">${escapeHtml(text)}</div>`;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'message-user-avatar';
+  avatar.textContent = CONFIG.userInitial || 'U';
+
+  const body = document.createElement('div');
+  body.style.cssText = 'flex:1; min-width:0;';
+
+  const label = document.createElement('div');
+  label.className = 'message-user-label';
+  label.textContent = 'You';
+
+  const content = document.createElement('div');
+  content.className = 'message-content';
+  content.textContent = text;
+
+  body.appendChild(label);
+  body.appendChild(content);
+  wrapper.appendChild(avatar);
+  wrapper.appendChild(body);
   chatMessages.appendChild(wrapper);
   scrollToBottom();
 }
 
-// ── Stream bot response ──
+// ── Bot response ──
 function streamBotResponse(entry) {
   isStreaming = true;
   updateSendButton();
@@ -144,26 +166,25 @@ function streamBotResponse(entry) {
   const wrapper = document.createElement('div');
   wrapper.className = 'message bot';
 
-  const avatar = document.createElement('div');
-  avatar.className = 'bot-avatar';
-  if (CONFIG.botAvatar) {
-    avatar.innerHTML = `<img src="${CONFIG.botAvatar}" alt="${CONFIG.botName}">`;
-  } else {
-    avatar.textContent = CONFIG.botName ? CONFIG.botName[0] : 'B';
-  }
-
   const contentOuter = document.createElement('div');
-  contentOuter.style.cssText = 'flex:1; min-width:0;';
+  contentOuter.style.cssText = 'width:100%;';
 
-  // Show thinking indicator if thinkTime is set
+  // Bot name label
+  const nameLabel = document.createElement('div');
+  nameLabel.className = 'bot-name-label';
+  nameLabel.textContent = CONFIG.botName || 'Visual Bot (Qwen)';
+  contentOuter.appendChild(nameLabel);
+
+  wrapper.appendChild(contentOuter);
+  chatMessages.appendChild(wrapper);
+  scrollToBottom();
+
+  // Thinking indicator
   if (entry.thinkTime) {
     const thinkingEl = document.createElement('div');
     thinkingEl.className = 'thinking-indicator';
     thinkingEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.48-8.48l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83"/></svg> <span>Thinking...</span>`;
     contentOuter.appendChild(thinkingEl);
-    wrapper.appendChild(avatar);
-    wrapper.appendChild(contentOuter);
-    chatMessages.appendChild(wrapper);
     scrollToBottom();
 
     const thinkDuration = Math.min(entry.thinkTime * 200, 3000);
@@ -171,21 +192,17 @@ function streamBotResponse(entry) {
       thinkingEl.remove();
       const thoughtDone = document.createElement('div');
       thoughtDone.className = 'thinking-done';
-      thoughtDone.textContent = `Thought for ${entry.thinkTime} second${entry.thinkTime > 1 ? 's' : ''}`;
+      thoughtDone.innerHTML = `Thought for ${entry.thinkTime} second${entry.thinkTime > 1 ? 's' : ''} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
       contentOuter.appendChild(thoughtDone);
       startStreaming(entry, contentOuter);
     }, thinkDuration);
     return;
   }
 
-  wrapper.appendChild(avatar);
-  wrapper.appendChild(contentOuter);
-  chatMessages.appendChild(wrapper);
-  scrollToBottom();
   startStreaming(entry, contentOuter);
 }
 
-// ── Start word-by-word streaming ──
+// ── Streaming ──
 function startStreaming(entry, contentOuter) {
   const content = document.createElement('div');
   content.className = 'message-content';
@@ -208,7 +225,7 @@ function startStreaming(entry, contentOuter) {
     if (wordIndex >= words.length) {
       cursor.remove();
 
-      // Show images if any
+      // Images
       if (entry.images && entry.images.length > 0) {
         const imgContainer = document.createElement('div');
         imgContainer.className = 'message-images';
@@ -228,13 +245,16 @@ function startStreaming(entry, contentOuter) {
         contentOuter.appendChild(imgContainer);
       }
 
-      // Show action buttons
+      // Action buttons — 7 buttons matching real OpenWebUI
       const actions = document.createElement('div');
       actions.className = 'bot-actions visible';
       actions.innerHTML = `
+        <button title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <button title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button>
+        <button title="Read aloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14"/><path d="M15.54 8.46a5 5 0 010 7.07"/></svg></button>
         <button title="Good response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg></button>
         <button title="Bad response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15V19a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg></button>
+        <button title="Continue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></button>
         <button title="Regenerate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button>
       `;
       contentOuter.appendChild(actions);
@@ -268,6 +288,11 @@ function updateSendButton() {
     sendBtn.classList.remove('stop-btn');
     sendIcon.innerHTML = '<line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>';
     sendBtn.disabled = inputField.value.trim() === '';
+    if (!inputField.value.trim()) {
+      sendBtn.classList.remove('visible');
+      const callBtn = document.querySelector('.toolbar-btn-call');
+      if (callBtn) callBtn.style.display = '';
+    }
   }
 }
 
