@@ -127,10 +127,19 @@ inputField.addEventListener('input', () => {
   }
 
   // Slash command detection
-  if (inputField.value === '/') {
+  const val = inputField.value;
+  if (val === '/' || val === '/ ') {
     showSlashPopup();
-  } else {
+  } else if (!val.startsWith('/')) {
     hideSlashPopup();
+  }
+});
+
+// Backup: also detect slash on keyup for browsers that delay input events
+inputField.addEventListener('keyup', () => {
+  const val = inputField.value;
+  if (val === '/' || val === '/ ') {
+    showSlashPopup();
   }
 });
 
@@ -324,6 +333,7 @@ function openStudio(url) {
   const lightbox = document.getElementById('studioLightbox');
   const iframe = document.getElementById('studioIframe');
   iframe.src = url;
+  lightbox.style.display = 'flex';
   lightbox.classList.add('open');
 }
 
@@ -331,7 +341,8 @@ function closeStudio() {
   const lightbox = document.getElementById('studioLightbox');
   const iframe = document.getElementById('studioIframe');
   lightbox.classList.remove('open');
-  iframe.src = '';
+  lightbox.style.display = 'none';
+  iframe.removeAttribute('src');
 }
 
 document.getElementById('studioCloseBtn').addEventListener('click', closeStudio);
