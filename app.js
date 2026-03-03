@@ -597,13 +597,23 @@ function onStreamingDone(entry) {
 
   // After a bot response with openStudio, auto-type "/" and open studio
   if (entry && entry.openStudio) {
+    // Use per-entry studioUrl if provided, otherwise fall back to config
+    const studioUrlOverride = entry.studioUrl || null;
     setTimeout(() => {
       inputField.value = '/';
       inputField.dispatchEvent(new Event('input'));
       // Popup appears, click it after a beat
       setTimeout(() => {
-        const item = slashPopup.querySelector('.slash-cmd-item');
-        if (item) item.click();
+        if (studioUrlOverride) {
+          // Open directly with override URL instead of clicking popup
+          hideSlashPopup();
+          inputField.value = '';
+          inputField.dispatchEvent(new Event('input'));
+          openStudio(studioUrlOverride);
+        } else {
+          const item = slashPopup.querySelector('.slash-cmd-item');
+          if (item) item.click();
+        }
       }, 1000);
     }, 2000);
     return;
@@ -614,28 +624,88 @@ function onStreamingDone(entry) {
 }
 
 function autoTypeMessage(text, callback) {
-  const baseSpeed = CONFIG.typeSpeed || 50;
-  let i = 0;
+  const baseSpeed = CONFIG.typeSpeed || 75;
+
+  // Parse typo markers: ~wrong~correct~
+  const segments = [];
+  let remaining = text;
+  while (remaining.length > 0) {
+    const idx = remaining.indexOf('~');
+    if (idx === -1) {
+      segments.push({ type: 'normal', text: remaining });
+      break;
+    }
+    if (idx > 0) {
+      segments.push({ type: 'normal', text: remaining.substring(0, idx) });
+    }
+    remaining = remaining.substring(idx + 1);
+    const wrongEnd = remaining.indexOf('~');
+    const wrong = remaining.substring(0, wrongEnd);
+    remaining = remaining.substring(wrongEnd + 1);
+    const correctEnd = remaining.indexOf('~');
+    const correct = remaining.substring(0, correctEnd);
+    remaining = remaining.substring(correctEnd + 1);
+    segments.push({ type: 'typo', wrong, correct });
+  }
+
+  let currentText = '';
   inputField.value = '';
   inputField.dispatchEvent(new Event('input'));
+  let segIndex = 0;
 
-  function typeNext() {
-    if (i >= text.length) {
+  function processNextSegment() {
+    if (segIndex >= segments.length) {
       if (callback) callback();
       return;
     }
-    inputField.value = text.substring(0, i + 1);
-    inputField.dispatchEvent(new Event('input'));
-    const char = text[i];
-    i++;
-    // Natural typing: slight pause after punctuation and spaces
-    let delay = baseSpeed + Math.floor(Math.random() * 30) - 15;
-    if ('.!?,;:'.includes(char)) delay += 100;
-    if (char === ' ') delay += 20;
-    setTimeout(typeNext, delay);
+    const seg = segments[segIndex];
+    segIndex++;
+
+    if (seg.type === 'normal') {
+      typeChars(seg.text, processNextSegment);
+    } else {
+      // Type wrong text, pause, backspace, type correct
+      typeChars(seg.wrong, () => {
+        setTimeout(() => {
+          backspaceChars(seg.wrong.length, () => {
+            typeChars(seg.correct, processNextSegment);
+          });
+        }, 500);
+      });
+    }
   }
 
-  typeNext();
+  function typeChars(chars, done) {
+    let i = 0;
+    function next() {
+      if (i >= chars.length) { done(); return; }
+      currentText += chars[i];
+      inputField.value = currentText;
+      inputField.dispatchEvent(new Event('input'));
+      const ch = chars[i];
+      i++;
+      let delay = baseSpeed + Math.floor(Math.random() * 40) - 20;
+      if ('.!?,;:'.includes(ch)) delay += 120;
+      if (ch === ' ') delay += 30;
+      setTimeout(next, delay);
+    }
+    next();
+  }
+
+  function backspaceChars(count, done) {
+    let left = count;
+    function next() {
+      if (left <= 0) { done(); return; }
+      currentText = currentText.substring(0, currentText.length - 1);
+      inputField.value = currentText;
+      inputField.dispatchEvent(new Event('input'));
+      left--;
+      setTimeout(next, 55);
+    }
+    next();
+  }
+
+  processNextSegment();
 }
 
 // ── Init ──
