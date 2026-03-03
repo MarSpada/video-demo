@@ -42,7 +42,7 @@
       "images": []
     },
     {
-      "thinkTime": 8,
+      "thinkTime": 18,
       "botResponse": "Here's your Instagram Story image:",
       "images": ["images/image-result-Instagram.jpg"]
     },
@@ -58,7 +58,7 @@
       "images": []
     },
     {
-      "thinkTime": 6,
+      "thinkTime": 15,
       "botResponse": "Here's your 18×24 poster version:",
       "images": ["images/image-result-poster.jpg"]
     },
