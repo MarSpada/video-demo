@@ -348,58 +348,121 @@ function streamBotResponse(entry) {
   startStreaming(entry, contentOuter);
 }
 
-// ── Studio response ──
+// ── Studio response (multi-step: think → text → view result → think → text + image + button) ──
 function renderStudioResponse(entry, contentOuter) {
   const thinkDuration1 = Math.min((entry.thinkTime || 1) * 200, 3000);
   const thinkDuration2 = Math.min((entry.thinkTime2 || 1) * 200, 3000);
+  const wordDelay = entry.wordDelay || 40;
 
-  // Phase 1: First thinking
+  // Phase 1: First thinking spinner
   const thinking1 = createThinkingEl();
   contentOuter.appendChild(thinking1);
   scrollToBottom();
 
   setTimeout(() => {
     thinking1.remove();
-
-    // "Thought for X seconds"
     contentOuter.appendChild(createThoughtDoneEl(entry.thinkTime || 1));
 
-    // "View Result from Open Studio V2"
-    const viewResult = document.createElement('div');
-    viewResult.className = 'view-result';
-    viewResult.innerHTML = `View Result from <strong>Open Studio V2</strong> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
-    contentOuter.appendChild(viewResult);
+    // Phase 2: Stream first botResponse text
+    const content1 = document.createElement('div');
+    content1.className = 'message-content';
+    const cursor1 = document.createElement('span');
+    cursor1.className = 'streaming-cursor';
+    content1.appendChild(cursor1);
+    contentOuter.appendChild(content1);
     scrollToBottom();
 
-    // Phase 2: Second thinking
-    const thinking2 = createThinkingEl();
-    contentOuter.appendChild(thinking2);
-    scrollToBottom();
+    const text1 = processMarkdown(entry.botResponse);
+    streamWords(text1, content1, cursor1, wordDelay, () => {
+      cursor1.remove();
 
-    setTimeout(() => {
-      thinking2.remove();
-
-      // "Thought for X seconds"
-      contentOuter.appendChild(createThoughtDoneEl(entry.thinkTime2 || 1));
-
-      // "Image Studio" button
-      const studioBtn = document.createElement('button');
-      studioBtn.className = 'studio-btn';
-      studioBtn.textContent = 'Image Studio';
-      studioBtn.addEventListener('click', () => {
-        openStudio(entry.studioUrl);
-      });
-      contentOuter.appendChild(studioBtn);
-
-      // Action buttons
-      appendActionButtons(contentOuter);
-
-      isStreaming = false;
-      updateSendButton();
+      // Phase 3: "View Result from [label]"
+      const label = entry.viewResultLabel || 'Apply Branding';
+      const viewResult = document.createElement('div');
+      viewResult.className = 'view-result';
+      viewResult.innerHTML = `View Result from <strong>${escapeHtml(label)}</strong> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>`;
+      contentOuter.appendChild(viewResult);
       scrollToBottom();
-      onStreamingDone(entry);
-    }, thinkDuration2);
+
+      // Phase 4: Second thinking spinner
+      const thinking2 = createThinkingEl();
+      contentOuter.appendChild(thinking2);
+      scrollToBottom();
+
+      setTimeout(() => {
+        thinking2.remove();
+        const t2 = entry.thinkTime2 || 1;
+        contentOuter.appendChild(createThoughtDoneEl(t2 < 1 ? 'less than a' : t2));
+
+        // Phase 5: Stream second botResponse2 text
+        const content2 = document.createElement('div');
+        content2.className = 'message-content';
+        const cursor2 = document.createElement('span');
+        cursor2.className = 'streaming-cursor';
+        content2.appendChild(cursor2);
+        contentOuter.appendChild(content2);
+        scrollToBottom();
+
+        const text2 = processMarkdown(entry.botResponse2 || '');
+        streamWords(text2, content2, cursor2, wordDelay, () => {
+          cursor2.remove();
+
+          // Phase 6: Show images
+          if (entry.images && entry.images.length > 0) {
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'message-images';
+            entry.images.forEach(src => {
+              const img = document.createElement('img');
+              img.src = src;
+              img.alt = 'Generated graphic';
+              img.onerror = function() {
+                this.style.display = 'none';
+              };
+              imgContainer.appendChild(img);
+            });
+            contentOuter.appendChild(imgContainer);
+          }
+
+          // Phase 7: "Image Studio" button
+          const studioUrl = entry.studioUrl || CONFIG.studioUrl;
+          const studioBtn = document.createElement('button');
+          studioBtn.className = 'studio-btn';
+          studioBtn.textContent = 'Image Studio';
+          studioBtn.addEventListener('click', () => {
+            openStudio(studioUrl);
+          });
+          contentOuter.appendChild(studioBtn);
+
+          // Action buttons
+          appendActionButtons(contentOuter);
+
+          isStreaming = false;
+          updateSendButton();
+          scrollToBottom();
+          onStreamingDone(entry);
+        });
+      }, thinkDuration2);
+    });
   }, thinkDuration1);
+}
+
+// Helper: stream words into an element (used by both normal and studio responses)
+function streamWords(html, container, cursor, wordDelay, done) {
+  const words = html.split(/(\s+)/);
+  let wordIndex = 0;
+  let currentHtml = '';
+
+  function next() {
+    if (wordIndex >= words.length) { done(); return; }
+    currentHtml += words[wordIndex];
+    container.innerHTML = currentHtml;
+    container.appendChild(cursor);
+    wordIndex++;
+    scrollToBottom();
+    const delay = words[wordIndex - 1].trim() === '' ? 5 : wordDelay;
+    setTimeout(next, delay);
+  }
+  next();
 }
 
 // ── Studio Lightbox ──
@@ -595,29 +658,9 @@ function advanceAutoPlay() {
 function onStreamingDone(entry) {
   if (!CONFIG.autoPlay || !autoPlayActive) return;
 
-  // After a bot response with openStudio, auto-type "/" and open studio
-  if (entry && entry.openStudio) {
-    // Use per-entry studioUrl if provided, otherwise fall back to config
-    const studioUrlOverride = entry.studioUrl || null;
-    setTimeout(() => {
-      inputField.value = '/';
-      inputField.dispatchEvent(new Event('input'));
-      // Popup appears, click it after a beat
-      setTimeout(() => {
-        if (studioUrlOverride) {
-          // Open directly with override URL instead of clicking popup
-          hideSlashPopup();
-          inputField.value = '';
-          inputField.dispatchEvent(new Event('input'));
-          openStudio(studioUrlOverride);
-        } else {
-          const item = slashPopup.querySelector('.slash-cmd-item');
-          if (item) item.click();
-        }
-      }, 1000);
-    }, 2000);
-    return;
-  }
+  // Studio-type entries pause for user to click "Image Studio" button
+  // Auto-play resumes when closeStudio() is called
+  if (entry && entry.type === 'studio') return;
 
   // Otherwise advance to next entry
   advanceAutoPlay();

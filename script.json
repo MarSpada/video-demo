@@ -18,13 +18,13 @@
   },
   "conversation": [
     {
-      "userMessage": "I need to create an ~instagra~instagram~ story image for a protest event",
+      "userMessage": "I need to create an ~instrgra~instagram~ story image to invite my friends and family to a poster-making party before the next protest",
       "thinkTime": 3,
-      "botResponse": "To make sure I generate the right image for you, I need a few more details:\n\n1. **What should the image show?** (main subject or focus)\n2. **Who is this image intended for?** (target audience)\n3. **What message should it communicate?** (key message or purpose)\n4. **Do you have the rights to use any reference images or content?** (if you plan to upload an image)\n\nOnce you provide these details, I can create the image.",
+      "botResponse": "To make sure I generate the right image for you, I need a few more details:\n\n1. **What should the image show?** (main subject or focus)\n2. **What message should it communicate?** (key message or purpose)\n3. **Do you want to generate an image from scratch or do you have a reference images or content you want to use?** \n\nOnce you provide these details, I can start creating your Instagram story image.",
       "images": []
     },
     {
-      "userMessage": "It's about a protest event, for ~frineds~friends~ and community. The message is join us this saturday. I have an image I want to use",
+      "userMessage": "I have an image of me at a previous protest I want to use, the tone should be inviting and friendly.",
       "thinkTime": 4,
       "botResponse": "Thanks for the details! Since you have a reference image, please go ahead and upload it. I'll use it as the base for your Instagram Story design.\n\nClick the **+** button to upload your photo.",
       "images": []
@@ -32,40 +32,28 @@
     {
       "userMessage": null,
       "thinkTime": 5,
-      "botResponse": "⚠️ **Important: Consent & Privacy Notice**\n\nI can see this photo contains **identifiable faces**. Before I use it in a public-facing graphic, please confirm:\n\n1. Do you have **consent** from the people in this photo to use their likeness?\n2. Would you like me to **blur or obscure** any faces?\n\nPlease confirm how you'd like to proceed.",
+      "botResponse": "⚠️ **Important: Consent & Privacy Notice**\n\nI can see this photo contains **identifiable faces**. Before I use it in a public-facing graphic, please confirm:\n\n1. Do you have **consent** from the people in this photo to use their likeness?",
       "images": []
     },
     {
       "userMessage": "yes I have the ~concent~consent~, it's me in the photo",
+      "type": "studio",
       "thinkTime": 15,
-      "botResponse": "Got it! Since it's you in the photo and you have consent, I'll proceed with the original image.\n\nI'm generating your Instagram Story (1080×1920) now. This will feature:\n- Your photo as the hero image\n- Optimized composition for vertical Story format\n- Space for text overlays and stickers\n\nGenerating...",
-      "images": []
-    },
-    {
-      "thinkTime": 18,
-      "botResponse": "Here's your Instagram Story image:",
+      "botResponse": "Got it! Since it's you in the photo and you have consent, I'll proceed with the original image.\n\nI'm generating your Instagram Story (1080×1920) now. This will feature:\n- Your photo as the hero image\n- Optimized composition for vertical Story format\n- Space for text overlays\n\nGenerating...",
+      "viewResultLabel": "Apply Branding",
+      "thinkTime2": 1,
+      "botResponse2": "Here's your Instagram Story image. Let me know if you want to make any changes:",
       "images": ["images/image-result-Instagram.jpg"]
     },
     {
-      "botResponse": "Your image is ready! You can now open the **Visual Studio** to make edits — add text, your logo, stickers, or adjust the layout.\n\nType `/` to open the Visual Studio.",
-      "images": [],
-      "openStudio": true
-    },
-    {
-      "userMessage": "can you resize this to a ~postre~poster~ size? 18x24 ~inchs~inches~",
+      "userMessage": "can you resize this to a ~postre~poster~ size to invite people from my neighbordhood too?",
+      "type": "studio",
       "thinkTime": 12,
-      "botResponse": "Of course! I'll resize your design to an **18×24 inch poster format** (5400×7200px at 300 DPI). This is a standard poster size, perfect for printing.\n\nResizing now...",
-      "images": []
-    },
-    {
-      "thinkTime": 15,
-      "botResponse": "Here's your 18×24 poster version:",
-      "images": ["images/image-result-poster.jpg"]
-    },
-    {
-      "botResponse": "The poster is ready! Open the **Visual Studio** to add your text and QR code.\n\nType `/` to open the Visual Studio.",
-      "images": [],
-      "openStudio": true,
+      "botResponse": "Of course! I'll resize your design to an **18×24 inch poster format**. This is a standard poster size, perfect for printing.\n\nResizing now...",
+      "viewResultLabel": "Apply Branding",
+      "thinkTime2": 1,
+      "botResponse2": "Here's your 18×24 poster version:",
+      "images": ["images/image-result-poster.jpg"],
       "studioUrl": "https://qwen-image-editor-production-49d4.up.railway.app/standalone/studio?imageUrl=https%3A%2F%2Fraw.githubusercontent.com%2FMarSpada%2Fvideo-demo%2Fmain%2Fimages%2Fimage-result-poster.jpg&user_id=Tectonica"
     },
     {
